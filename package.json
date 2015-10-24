@@ -1,0 +1,30 @@
+{
+  "name": "tapthat-api",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "apn": "^1.7.5",
+    "async": "1.4.x",
+    "aws-sdk": "^2.2.6",
+    "bcrypt": "^0.8.5",
+    "body-parser": "1.13.x",
+    "busboy": "^0.2.11",
+    "express": "3.21.x",
+    "frisby": "^0.8.5",
+    "log4js": "0.6.x",
+    "moment": "^2.10.2",
+    "mysql": "2.8.x",
+    "node-crux": "latest",
+    "node-uuid": "^1.4.1",
+    "nodemon": "^1.7.1",
+    "redis": "latest",
+    "request": "^2.64.0",
+    "sendgrid": "^1.9.2",
+    "sequelize": "1.7.x",
+    "swig": "^1.4.2",
+    "twilio": "^2.4.0"
+  },
+  "devDependencies": {
+    "supertest": "^1.1.0"
+  }
+}

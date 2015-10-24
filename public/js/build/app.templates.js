@@ -1,0 +1,1 @@
+window['VIEWS'] = {"helloWorld":"<p>Hello world! Basic example of a front template.</p>"};
