@@ -27,31 +27,36 @@ module.exports = function InitUser(Route) {
   })
   .then(function(userObj){
 
-    // Transaction here
+      amount = this.body('amount');
+
+      // Transaction here
+      var mongojs = require('mongojs');
+      var db = mongojs('p2p', ['user', 'give']);
+      var self = this;
+      var moveMoneyBetweenCards = require('../utils').moveMoneyBetweenCards;
+      moveMoneyBetweenCards("CENTRAL", "5184680430000279",
+                            userObj.username, userObj.card).then(function(transactionId) {
+          db.user.update({
+              username: userObj.username
+          }, { '$inc' : {
+              total_amount: amount,
+              total_amount_available: amount
+          }}, function() {
+              db.give.insert({
+                  amount: amount,
+                  username: userObj.username,
+                  mastercardTransactionId: transactionId
+              }, function(err, item) {
+                  if (err) {
+                      return self.error(400, 'Transactions were not saved');
+                  }
+                  delete item._id;
+                  return self.success(item);
+              })
+          });
+      });
+  });
     
     // Add money to both entries
-    amount = this.body('amount');
     
-    // Record the transaction
-    var mongojs = require('mongojs');
-    var db = mongojs('p2p', ['user', 'give']);
-    var self = this;
-    db.user.update({
-        username: userObj.username
-    }, { '$inc' : {
-        total_amount: amount,
-        total_amount_available: amount
-    }}, function() {
-        db.give.insert({
-            amount: amount,
-            username: userObj.username
-        }, function(err, item) {
-            if (err) {
-                return self.error(400, 'Transactions were not saved');
-            }
-            delete item._id;
-            return self.success(item);
-        })
-    });
-  });
 }
