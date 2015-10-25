@@ -34,7 +34,7 @@ module.exports = function InitUser(Route) {
     
     // Record the transaction
     var mongojs = require('mongojs');
-    var db = mongojs('p2p', ['user', 'transaction']);
+    var db = mongojs('p2p', ['user', 'give']);
     var self = this;
     db.user.update({
         username: userObj.username
@@ -42,9 +42,9 @@ module.exports = function InitUser(Route) {
         total_amount: amount,
         total_amount_available: amount
     }}, function() {
-        db.transaction.insert({
+        db.give.insert({
             amount: amount,
-            from_user: userObj.username
+            username: userObj.username
         }, function(err, item) {
             if (err) {
                 return self.error(400, 'Transactions were not saved');
