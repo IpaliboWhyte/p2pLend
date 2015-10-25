@@ -17,14 +17,14 @@ module.exports = function InitUser(Route) {
     var mongojs = require('mongojs');
     var db = mongojs('p2p', ['user']);
 
-    db.user.find(
+    db.user.findOne(
       {
         token: self.header('x-access-token')
       },function(err, userObj){
-          if (err) {
+          if (!userObj) {
               return self.fail({reason: "User not found"})
           }
-          self.pass(userObj[0]);
+          return self.pass(userObj);
     })
   });
 }
