@@ -5,17 +5,15 @@ module.exports = function (give, Mongo) {
 
   give 
     .field('amount', Mongo.NUMBER)
-    .field('user_id', Mongo.STRING)
-    .field('currency', Mongo.STRING)
-    .field('rate', Mongo.NUMBER)
+    .field('from_user', Mongo.NUMBER)
+    .field('to_user', Mongo.NUMBER);
     
   give 
     .method('toJSON', function toJSON(){
       var d = {}
       d.amount  = this.amount;
-      d.user_id  = this.user_id;
-      d.currency = this.currency;
-      d.rate = this.rate;
+      d.from_user  = this.from_user;
+      d.to_user = this.to_user;
       return d;
     });
 }
