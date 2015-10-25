@@ -19,9 +19,12 @@ module.exports = function InitUser(Route) {
 
     db.user.find(
       {
-        token: 'steve'
+        token: self.header('x-access-token')
       },function(err, userObj){
-        self.pass(userObj[0]);
+          if (err) {
+              return self.fail({reason: "User not found"})
+          }
+          self.pass(userObj[0]);
     })
   });
 }
