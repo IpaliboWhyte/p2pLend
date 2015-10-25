@@ -21,16 +21,18 @@ module.exports = function InitUser(Route) {
 */
   Route
   .post('/give', 'should create a new give object and save')
+  .checkpoint('security:user')
   .body({
     amount: Route.type.NUMBER.invalid('INVALID_AMOUNT', 'amount should be an integer')
   })
   .then(function(userObj){
     var self = this,
+    calls = [],
     giveObj,
     amount = this.body('amount'),
     Give = self.schema('give');
     
-    var user_id = 10;
+    var user_id = userObj.id;
 
     var data = {
       user_id: user_id,
@@ -39,14 +41,39 @@ module.exports = function InitUser(Route) {
       rate: INTEREST_RATE
     }
 
-    giveObj = Give.build(data);
-    // save to mongo
-    giveObj.save().then(function(){
-      console.log('saved give for user with id %s', user_id)
-      self.success(giveObj);
-    }).catch(function(err){
-      self.error(err);
-    });
+    // deduct the amount from the users total
+    calls.push(function(stop){
+      console.log(userObj);
+      var available = userObj.total_amount_available;
+      console.log('available is '+available +'amount is:'+amount);
+      if(available < amount) {
+        return stop()
+      };
+        var mongojs = require('mongojs');
+        var db = mongojs('p2p', ['user']);
+        return db.user.update({},{
+          set:{
+            total_amount_available: userObj.total_amount_available - amount
+          }
+        });
+    })
+    
+    calls.push(function(){
+      console.log('should not get in here');
+
+      // save to mongo
+      giveObj = Give.build(data);
+      return giveObj.save().then(function(){
+        console.log('saved give for user with id %s', user_id)
+      }).catch(function(err){
+        self.error(err);
+      })
+    })
+
+    crux.series(calls).then(function(){
+      if(giveObj) return self.success(giveObj);
+      return self.error(400, 'You dont have enough money')
+    })
 
   });
 

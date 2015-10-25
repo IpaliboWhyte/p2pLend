@@ -12,7 +12,7 @@ module.exports = function (give, Mongo) {
       d.user_id  = this.user_id;
       d.amount  = this.amount;
       d.rate  = this.rate;
-      d.currency = this.rate;
+      d.currency = this.currency;
       return d;
     });
     
