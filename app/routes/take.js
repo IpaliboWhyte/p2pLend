@@ -23,7 +23,9 @@ module.exports = function InitUser(Route) {
     var db = mongojs('p2p', ['user', 'transaction']);
     console.log("OUTSIDE");
     console.log(amount);
-    db.user.find({total_amount_available: {$gt: 0}}).sort({total_amount_available: -1}, function(err, docs) {
+    db.user
+        .find({total_amount_available: {$gt: 0}, username: { $ne: userObj.username }})
+        .sort({total_amount_available: -1}, function(err, docs) {
       
       // Check if total amount is possible
       var totalInBank = 0;
@@ -80,9 +82,11 @@ module.exports = function InitUser(Route) {
                   return function() {
                       db.transaction.insert({
                           amount: am,
+                          mastercardTransactionId: transactionId,
                           from_user: username,
                           to_user: userObj.username
                       }, function(err, item) {
+                          delete item.mastercardTransactionId;
                           if (err) {
                               return self.error(400, 'Transactions were not saved');
                           }
