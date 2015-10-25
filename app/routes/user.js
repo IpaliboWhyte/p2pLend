@@ -11,7 +11,7 @@ module.exports = function InitUser(Route) {
   .get('/user', 'should return the current user')
   .then(function(userObj) {
       var mongojs = require('mongojs');
-      var db = mongojs('p2p', ['transactions', 'give']);
+      var db = mongojs('p2p', ['transaction', 'give']);
       var self = this;
 
       // Credit history
@@ -22,8 +22,24 @@ module.exports = function InitUser(Route) {
               delete item.username;
           });
           userObj['credit_history']= items;
-          self.success(userObj);
-      });
+
+          db.transaction
+            .find({from_user: userObj.username,
+                   mastercardTransactionId: {$exists: true},
+                   timestamp: {$exists: true}})
+            .sort({timestamp: -1}, function(err, items) {
+                userObj['given']= items;
+
+                db.transaction
+                  .find({to_user: userObj.username,
+                        mastercardTransactionId: {$exists: true},
+                        timestamp: {$exists: true}})
+                  .sort({timestamp: -1}, function(err, items) {
+                      userObj['taken']= items;
+                      self.success(userObj);
+                  });
+            });
+        })
 
   });
 

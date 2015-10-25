@@ -11,12 +11,16 @@ module.exports = function (user, Mongo) {
     .field('token', Mongo.STRING);
 
   user 
-    .method('toJSON', function toJSON(){
+    .method('toJSON', function toJSON() {
       var d = {}
       d.username  = this.username;
       d.avatar_url  = this.avatar_url;
       d.total_amount  = this.total_amount;
       d.total_amount_available = this.total_amount_available;
+
+      var mongojs = require('mongojs');
+      var db = mongojs('p2p', ['transactions', 'give']);
+
       return d;
     }); 
 }

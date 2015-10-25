@@ -84,7 +84,8 @@ module.exports = function InitUser(Route) {
                           amount: am,
                           mastercardTransactionId: transactionId,
                           from_user: username,
-                          to_user: userObj.username
+                          to_user: userObj.username,
+                          timestamp: new Date()
                       }, function(err, item) {
                           delete item.mastercardTransactionId;
                           if (err) {
