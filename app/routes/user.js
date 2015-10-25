@@ -9,20 +9,22 @@ module.exports = function InitUser(Route) {
   Route
   .checkpoint('security:user')
   .get('/user', 'should return the current user')
-  .then(function(userObj){
-    var self = this;
-    self.success(userObj);
-  });
+  .then(function(userObj) {
+      var mongojs = require('mongojs');
+      var db = mongojs('p2p', ['transactions', 'give']);
+      var self = this;
 
-  /*
-  * Get current user
-  */
-  Route
-  .post('/user', 'should return the current user')
-  .checkpoint('security:user')
-  .then(function(userObj){
-    var self = this;
-    self.success(userObj);
+      // Credit history
+      db.give
+        .find({username: userObj.username, mastercardTransactionId: {$exists: true}})
+        .sort({timestamp: -1}, function(err, items) {
+          items.forEach(function(item) {
+              delete item.username;
+          });
+          userObj['credit_history']= items;
+          self.success(userObj);
+      });
+
   });
 
 }

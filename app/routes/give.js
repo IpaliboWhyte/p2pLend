@@ -45,7 +45,8 @@ module.exports = function InitUser(Route) {
               db.give.insert({
                   amount: amount,
                   username: userObj.username,
-                  mastercardTransactionId: transactionId
+                  mastercardTransactionId: transactionId,
+                  timestamp: new Date()
               }, function(err, item) {
                   if (err) {
                       return self.error(400, 'Transactions were not saved');
