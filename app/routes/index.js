@@ -3,7 +3,8 @@
 * */
 module.exports = function InitRoute(Route) {
 
-  Route.namespace('landing').root('/')
+  Route
+    .root('/');
 
   Route
     .get('/', 'Landing page with angular.js mini app')

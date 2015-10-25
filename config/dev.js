@@ -1,15 +1,24 @@
 /* Development environment application configuration files */
 module.exports = {
   server: {
-    host: 'localhost',
-    port: 3000
+    path: {
+      routes: "app/routes",
+      public: false,
+      views: false
+    },
+    request: {
+      limit: 50000,
+      cors: ['OPTIONS', 'POST', 'GET', 'DELETE'],
+      restful: true,
+      cookies: false
+    },
+    views: false
   },
-  sql: {
-    host: 'localhost',
-    user: 'crux',
-    password: 'crux',
-    database: 'crux_example',
-    sync: true
+  // MONGO settings
+  mongo: {
+    debug: false,
+    schemas: "app/schemas",
+    database: "p2p"
   },
   build: {
     autoWatch: true

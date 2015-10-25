@@ -11,11 +11,9 @@ app
   .path(__dirname)
   .projectConfig('config/_project.yml')
   .appConfig('config/dev.js')
-  .components(['log', 'build', 'service', 'server']);
-
+  .components(['log', 'mongo', 'service', 'server'], true);
 
 app.init();
-
 
 if(NODE_ENV === 'dev') {
   app.component('build').set('autoWatch', true);

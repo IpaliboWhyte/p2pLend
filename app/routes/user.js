@@ -1,9 +1,15 @@
 /*
 * This should contain all the logic for the user sub endpoints
 */
-module.export = function(Route){
-  // TO FINISH
+module.exports = function InitUser(Route) {
+  Route
+  .namespace('user').root('/')
 
   Route
-  .get('/', 'should return the current user')
+  .checkpoint('security:user')
+  .get('/user', 'should return the current user')
+  .then(function(userObj){
+    var self = this;
+    self.success(userObj);
+  });
 }
