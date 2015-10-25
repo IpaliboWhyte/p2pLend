@@ -26,76 +26,32 @@ module.exports = function InitUser(Route) {
     amount: Route.type.NUMBER.invalid('INVALID_AMOUNT', 'amount should be an integer')
   })
   .then(function(userObj){
-    var self = this,
-    calls = [],
-    giveObj,
-    amount = this.body('amount'),
-    Give = self.schema('give');
+
+    // Transaction here
     
-    var user_id = userObj.id;
-
-    var data = {
-      user_id: user_id,
-      amount: amount,
-      currency: 'USD',
-      rate: INTEREST_RATE
-    }
-
-    // deduct the amount from the users total
-    calls.push(function(stop){
-      console.log(userObj);
-      var available = userObj.total_amount_available;
-      console.log('available is '+available +'amount is:'+amount);
-      if(available < amount) {
-        return stop()
-      };
-        var mongojs = require('mongojs');
-        var db = mongojs('p2p', ['user']);
-        return db.user.update({},{
-          set:{
-            total_amount_available: userObj.total_amount_available - amount
-          }
-        });
-    })
+    // Add money to both entries
+    amount = this.body('amount');
     
-    calls.push(function(){
-      console.log('should not get in here');
-
-      // save to mongo
-      giveObj = Give.build(data);
-      return giveObj.save().then(function(){
-        console.log('saved give for user with id %s', user_id)
-      }).catch(function(err){
-        self.error(err);
-      })
-    })
-
-    crux.series(calls).then(function(){
-      if(giveObj) return self.success(giveObj);
-      return self.error(400, 'You dont have enough money')
-    })
-
-  });
-
-/*
-* This is responsible for getting a give by id.
-*/
-  Route
-  .get('/give/:id', 'Should return a give object corressponding to an id')
-  .checkpoint('security:user')
-  .param({
-    id: Route.type.STRING.invalid('INVALID_ID', 'Please provide a valid id type')
-  })
-  .then(function(userObj){
+    // Record the transaction
+    var mongojs = require('mongojs');
+    var db = mongojs('p2p', ['user', 'transaction']);
     var self = this;
-    _id = self.body.param('id'),
-    Give = self.schema('give');
-
-    // query mongo and return the corresponding giveObj by id
-    Give.findOne({id: _id}, function(giveObj){
-      if(giveObj) return self.success(giveObj);
-      return self.error({message: 'Give Not Found'});
+    db.user.update({
+        username: userObj.username
+    }, { '$inc' : {
+        total_amount: amount,
+        total_amount_available: amount
+    }}, function() {
+        db.transaction.insert({
+            amount: amount,
+            from_user: userObj.username
+        }, function(err, item) {
+            if (err) {
+                return self.error(400, 'Transactions were not saved');
+            }
+            delete item._id;
+            return self.success(item);
+        })
     });
-
   });
 }
