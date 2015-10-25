@@ -29,8 +29,6 @@ module.exports = function InitUser(Route) {
       docs.forEach(function(doc) {
         totalInBank += doc.total_amount_available;
       });
-      console.log("INSIDE");
-      console.log(amount);
       if (totalInBank < amount) {
         return self.error(400, 'you dont have enough funds');
       }

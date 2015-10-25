@@ -10,21 +10,22 @@ var makeTransactionReference = function() {
     return number;
 }
 
-var moveMoneyBetweenCards = function(frm_profile, to_profile, amount) {
+var moveMoneyBetweenCards = function(senderName, senderAccountNumber,
+                                     receiverName, receiverAccountNumber, amount) {
     var deferred = q.defer();
     var doc = fs.readFileSync('./app/request_body.xml').toString();
 
     var replacements = {
         '%TRANSACTIONREFERENCE%': makeTransactionReference(),
-        '%SENDERNAME%': frm_profile.username,
-        '%SENDERACCOUNTNUMBER%': frm_profile.card.toString(),
-        '%RECEIVERNAME%': to_profile.username,
-        '%RECEIVERACCOUNTNUMBER%': to_profile.card.toString(),
+        '%SENDERNAME%': senderName,
+        '%SENDERACCOUNTNUMBER%': senderAccountNumber,
+        '%RECEIVERNAME%': receiverName,
+        '%RECEIVERACCOUNTNUMBER%': receiverAccountNumber,
         '%AMOUNT%': amount + (Math.floor(Math.random() * 50) * 10)
     };
 
     var formatted_doc = doc.replace(/%\w+%/g, function(all) {
-       return replacements[all] || all;
+        return replacements[all] || all;
     });
 
     var options = {
@@ -35,7 +36,6 @@ var moveMoneyBetweenCards = function(frm_profile, to_profile, amount) {
         method: 'POST'
     };
     
-    console.log("OK");
     var req = http.request(options, function(response) {
         var res = "";
         response.on('data', function(chunk) {
@@ -69,7 +69,9 @@ db.user.find({}, function(err, items) {
     var sender = items[0];
     var receiver = items[1];
     var amount = 2882;
-    moveMoneyBetweenCards(sender, receiver, amount).then(function(res) {
+    moveMoneyBetweenCards(
+        sender.username, sender.card.toString(),
+        receiver.username, receiver.card.toString(), amount).then(function(res) {
         console.log(res);
     });
 });
