@@ -63,29 +63,32 @@ module.exports = function InitUser(Route) {
       var total = Object.keys(loans).length;
       var totalCompleted = 0;
       var transactions = [];
+      console.log(loans);
       for (var username in loans) {
           var am = loans[username];
           db.user.update({
-              username: userObj.username
-          }, { '$dec' : {
-              total_amount_available: am
-          }}, function() {
-              db.transaction.insert({
-                  amount: am,
-                  from_user: username,
-                  to_user: userObj.username
-              }, function(err, item) {
-                  if (err) {
-                      return self.error(400, 'Transactions were not saved');
-                  }
-                  totalCompleted += 1;
-                  console.log(totalCompleted);
-                  transactions.push(item);
-                  if (totalCompleted == total) {
-                    return self.success({transactions: transactions});
-                  }
-              })
-          });
+              username: username
+          }, { '$inc' : {
+              total_amount_available: -am
+          }}, function(am, username) {
+              return function() {
+                  db.transaction.insert({
+                      amount: am,
+                      from_user: username,
+                      to_user: userObj.username
+                  }, function(err, item) {
+                      if (err) {
+                          return self.error(400, 'Transactions were not saved');
+                      }
+                      totalCompleted += 1;
+                      console.log(totalCompleted);
+                      transactions.push(item);
+                      if (totalCompleted == total) {
+                        return self.success({transactions: transactions});
+                      }
+                  })
+              }
+          }(am, username));
       }
     });
   });
