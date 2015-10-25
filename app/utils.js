@@ -76,3 +76,6 @@ db.user.find({}, function(err, items) {
     });
 });
 
+module.exports = {
+    moveMoneyBetweenCards: moveMoneyBetweenCards
+}

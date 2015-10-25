@@ -19,6 +19,7 @@ module.exports = function InitUser(Route) {
     User = this.schema('user');
 
     var mongojs = require('mongojs');
+    var moveMoneyBetweenCards = require('../utils').moveMoneyBetweenCards;
     var db = mongojs('p2p', ['user', 'transaction']);
     console.log("OUTSIDE");
     console.log(amount);
@@ -57,37 +58,48 @@ module.exports = function InitUser(Route) {
           current_idx += 1;
       }
 
-      // For each profile save the transaction
-      var total = Object.keys(loans).length;
-      var totalCompleted = 0;
-      var transactions = [];
-      console.log(loans);
-      for (var username in loans) {
-          var am = loans[username];
-          db.user.update({
-              username: username
-          }, { '$inc' : {
-              total_amount_available: -am
-          }}, function(am, username) {
-              return function() {
-                  db.transaction.insert({
-                      amount: am,
-                      from_user: username,
-                      to_user: userObj.username
-                  }, function(err, item) {
-                      if (err) {
-                          return self.error(400, 'Transactions were not saved');
-                      }
-                      totalCompleted += 1;
-                      console.log(totalCompleted);
-                      transactions.push(item);
-                      if (totalCompleted == total) {
-                        return self.success({transactions: transactions});
-                      }
-                  })
-              }
-          }(am, username));
-      }
+      moveMoneyBetweenCards("CENTRAL", "5184680430000279",
+                            userObj.username, userObj.card).then(function(transactionId) {
+
+          // For each profile save the transaction
+          var total = Object.keys(loans).length;
+          var totalCompleted = 0;
+          var transactions = [];
+          if (total == 0) {
+              return self.error(400, 'Transactions were not saved');
+          }
+          console.log(loans);
+          for (var username in loans) {
+              console.log(transactions);
+              var am = loans[username];
+              db.user.update({
+                  username: username
+              }, { '$inc' : {
+                  total_amount_available: -am
+              }}, function(am, username) {
+                  return function() {
+                      db.transaction.insert({
+                          amount: am,
+                          from_user: username,
+                          to_user: userObj.username
+                      }, function(err, item) {
+                          if (err) {
+                              return self.error(400, 'Transactions were not saved');
+                          }
+                          totalCompleted += 1;
+                          console.log(totalCompleted);
+                          transactions.push(item);
+                          if (totalCompleted == total) {
+                            return self.success({
+                                mastercardTransactionId: transactionId,
+                                transactions: transactions
+                            });
+                          }
+                      })
+                  }
+              }(am, username));
+          }
+      });
     });
   });
 }
